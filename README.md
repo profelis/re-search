@@ -31,3 +31,6 @@ Preprocess search query be given patterns.
 - Execute command `re-search: Search` (`ctrl-shift-alt-F` by default)
 - insert search text
 - processed text will be pasted in `Search` panel
+
+
+![preview](https://raw.githubusercontent.com/profelis/re-search/master/preview.gif)

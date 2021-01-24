@@ -2,23 +2,41 @@ import * as vscode from 'vscode'
 
 interface ExtensionConfig { [index: string]: { isRegex?: boolean, replacement: string, stopMatching?: boolean, isCaseSensitive?: boolean, matchWholeWord?: boolean } }
 
-interface IFindInFilesArgs {
-	query?: string;
-	replace?: string;
-	triggerSearch?: boolean;
-	filesToInclude?: string;
-	filesToExclude?: string;
-	isRegex?: boolean;
-	isCaseSensitive?: boolean;
-	matchWholeWord?: boolean;
+// https://github.com/microsoft/vscode/blob/master/src/vs/workbench/contrib/searchEditor/browser/searchEditorInput.ts
+interface SearchConfiguration {
+	query?: string
+	filesToInclude?: string
+	filesToExclude?: string
+	contextLines?: number
+	matchWholeWord?: boolean
+	isCaseSensitive?: boolean
+	isRegex?: boolean
+	useExcludeSettingsAndIgnoreFiles?: boolean
+	showIncludesExcludes?: boolean
+	onlyOpenEditors?: boolean
+	triggerSearch?: boolean
+	focusResults?: boolean
+	// location: 'reuse' | 'new' 
+	replace?: string
+}
+
+let config: ExtensionConfig = {}
+
+function updateConfig() {
+	config = vscode.workspace.getConfiguration("re-search").get("patterns", {})
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	const config: ExtensionConfig = vscode.workspace.getConfiguration("re-search").get("patterns", {})
+	updateConfig()
+
+	vscode.workspace.onDidChangeConfiguration(event => {
+		if (event.affectsConfiguration("re-search"))
+			updateConfig()
+	})
 
 	const disposable = vscode.commands.registerCommand('re-search.search', async () => {
 		const selection = vscode.window.activeTextEditor?.document.getText(vscode.window.activeTextEditor.selection)
-		const input = await vscode.window.showInputBox({ value: selection ?? "" })
+		const input = await vscode.window.showInputBox({ value: selection ?? "", prompt: "Search" })
 
 		if (input == undefined)
 			return
@@ -46,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (stop)
 				break
 		}
-		vscode.commands.executeCommand('workbench.action.findInFiles', <IFindInFilesArgs>{
+		vscode.commands.executeCommand('workbench.action.findInFiles', <SearchConfiguration>{
 			query: searchText,
 			triggerSearch: true,
 			isRegex: isRegex,

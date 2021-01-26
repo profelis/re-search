@@ -4,7 +4,7 @@
 	"description": "Transform search query",
 	"author": "Dmitri Granetchi",
 	"license": "MIT",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"publisher": "profelis",
 	"repository": {
 		"type": "git",
@@ -14,7 +14,8 @@
 		"vscode": "^1.32.0"
 	},
 	"activationEvents": [
-		"onCommand:re-search.search"
+		"onCommand:re-search.search",
+		"onCommand:re-search.searchSelected"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -48,11 +49,15 @@
 			{
 				"command": "re-search.search",
 				"title": "re-search: Search"
+			},
+			{
+				"command": "re-search.searchSelected",
+				"title": "re-search: Search selected"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "re-search.search",
+				"command": "re-search.searchSelected",
 				"key": "ctrl+alt+shift+f"
 			}
 		]

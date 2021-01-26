@@ -34,10 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 			updateConfig()
 	})
 
-	const disposable = vscode.commands.registerCommand('re-search.search', async () => {
-		const selection = vscode.window.activeTextEditor?.document.getText(vscode.window.activeTextEditor.selection)
-		const input = await vscode.window.showInputBox({ value: selection ?? "", prompt: "Search" })
-
+	function search(input: string)
+	{
 		if (input == undefined)
 			return
 		let isRegex = false
@@ -71,7 +69,21 @@ export function activate(context: vscode.ExtensionContext) {
 			isCaseSensitive: isCaseSensitive,
 			matchWholeWord: matchWholeWord,
 		})
+	}
+
+	const searchDisposable = vscode.commands.registerCommand('re-search.search', async () => {
+		const selection = vscode.window.activeTextEditor?.document.getText(vscode.window.activeTextEditor.selection)
+		const input = await vscode.window.showInputBox({ value: selection ?? "", prompt: "Search" })
+		if (input != undefined)
+			search(input)
 	})
 
-	context.subscriptions.push(disposable)
+	const searchSelectedDisposable = vscode.commands.registerCommand('re-search.searchSelected', async () => {
+		const selection = vscode.window.activeTextEditor?.document.getText(vscode.window.activeTextEditor.selection)
+		if (selection)
+			search(selection)
+	})
+
+	context.subscriptions.push(searchDisposable)
+	context.subscriptions.push(searchSelectedDisposable)
 }

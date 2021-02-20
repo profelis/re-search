@@ -1,6 +1,6 @@
 # re-search plugin
 
-Preprocess search query be given patterns.
+Preprocess search query by given patterns.
 
 # Pattern examples
 

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 
-interface ExtensionConfig { [index: string]: { isRegex?: boolean, replacement: string, stopMatching?: boolean, isCaseSensitive?: boolean, matchWholeWord?: boolean, filesToInclude?: string } }
+interface ExtensionConfig { [index: string]: { isRegex?: boolean, replacement: string, stopMatching?: boolean, isCaseSensitive?: boolean, matchWholeWord?: boolean, filesToInclude?: string, filesToExclude?: string, useExcludeSettingsAndIgnoreFiles?: boolean } }
 
 // https://github.com/microsoft/vscode/blob/master/src/vs/workbench/contrib/searchEditor/browser/searchEditorInput.ts
 interface SearchConfiguration {
@@ -41,26 +41,47 @@ export function activate(context: vscode.ExtensionContext) {
 		let isCaseSensitive = false
 		let matchWholeWord = false
 		let filesToInclude = null
+		let filesToExclude = null
+		let useExcludeSettingsAndIgnoreFiles = true
 		let searchText = input
+		let matched = false;
 		for (const it in config) {
 			const data = config[it]
-			isRegex ||= data.isRegex ?? false
-			isCaseSensitive ||= data.isCaseSensitive ?? false
-			matchWholeWord ||= data.matchWholeWord ?? false
-			if (data.filesToInclude)
-				filesToInclude = filesToInclude == null ? data.filesToInclude : filesToInclude + "," + data.filesToInclude
 			let stop = data.stopMatching ?? false
+
 			let key = it.trim()
 			if (key.startsWith("/")) {
 				key = key.substr(1, key.endsWith("/") ? key.length - 2 : key.length - 1)
 				const reg = new RegExp(key, "g")
-				stop = stop && searchText.match(reg) != null
+				matched = searchText.match(reg) != null
+				stop = stop && matched
 				searchText = searchText.replace(reg, data.replacement)
 			}
 			else {
-				stop = stop && searchText.indexOf(key) >= 0
+				matched = searchText.indexOf(key) >= 0
+				stop = stop && matched
 				searchText = searchText.replace(key, data.replacement)
 			}
+
+			if (matched) {
+
+				// regex probably shouldn't revert if a previous non-stopping config sets it to true
+				isRegex ||= data.isRegex ?? false
+
+				// for all other properties, let the matching entry decide these values
+				if (data.hasOwnProperty('isCaseSensitive'))
+					isCaseSensitive = data.isCaseSensitive === true
+				if (data.hasOwnProperty('matchWholeWord'))
+					matchWholeWord = data.matchWholeWord === true
+				if (data.hasOwnProperty('useExcludeSettingsAndIgnoreFiles'))
+					useExcludeSettingsAndIgnoreFiles = data.useExcludeSettingsAndIgnoreFiles === true
+
+				if (data.hasOwnProperty('filesToInclude'))
+					filesToInclude = filesToInclude == null ? data.filesToInclude : filesToInclude + "," + data.filesToInclude
+				if (data.hasOwnProperty('filesToExclude'))
+					filesToExclude = filesToExclude == null ? data.filesToExclude : filesToExclude + ',' + data.filesToExclude
+			}
+
 			if (stop)
 				break
 		}
@@ -71,6 +92,8 @@ export function activate(context: vscode.ExtensionContext) {
 			isCaseSensitive: isCaseSensitive,
 			matchWholeWord: matchWholeWord,
 			filesToInclude: filesToInclude,
+			filesToExclude: filesToExclude,
+			useExcludeSettingsAndIgnoreFiles: useExcludeSettingsAndIgnoreFiles,
 		})
 	}
 

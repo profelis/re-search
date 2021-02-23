@@ -81,16 +81,16 @@ export function activate(context: vscode.ExtensionContext) {
 				isRegex ||= data.isRegex ?? false
 
 				// for all other properties, let the matching entry decide these values
-				if (data.hasOwnProperty('isCaseSensitive'))
+				if (Object.prototype.hasOwnProperty.call(data, 'isCaseSensitive'))
 					isCaseSensitive = data.isCaseSensitive === true
-				if (data.hasOwnProperty('matchWholeWord'))
+				if (Object.prototype.hasOwnProperty.call(data, 'matchWholeWord'))
 					matchWholeWord = data.matchWholeWord === true
-				if (data.hasOwnProperty('useExcludeSettingsAndIgnoreFiles'))
+				if (Object.prototype.hasOwnProperty.call(data, 'useExcludeSettingsAndIgnoreFiles'))
 					useExcludeSettingsAndIgnoreFiles = data.useExcludeSettingsAndIgnoreFiles === true
 
-				if (data.hasOwnProperty('filesToInclude'))
+				if (Object.prototype.hasOwnProperty.call(data, 'filesToInclude'))
 					filesToInclude = filesToInclude == null ? data.filesToInclude : filesToInclude + "," + data.filesToInclude
-				if (data.hasOwnProperty('filesToExclude'))
+				if (Object.prototype.hasOwnProperty.call(data, 'filesToExclude'))
 					filesToExclude = filesToExclude == null ? data.filesToExclude : filesToExclude + ',' + data.filesToExclude
 			}
 

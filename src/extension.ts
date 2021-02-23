@@ -1,6 +1,18 @@
 import * as vscode from 'vscode'
 
-interface ExtensionConfig { [index: string]: { isRegex?: boolean, replacement: string, stopMatching?: boolean, isCaseSensitive?: boolean, matchWholeWord?: boolean, filesToInclude?: string, filesToExclude?: string, useExcludeSettingsAndIgnoreFiles?: boolean } }
+interface ExtensionConfig {
+	[index: string]:
+	{
+		isRegex?: boolean,
+		replacement: string,
+		stopMatching?: boolean,
+		isCaseSensitive?: boolean,
+		matchWholeWord?: boolean,
+		filesToInclude?: string,
+		filesToExclude?: string,
+		useExcludeSettingsAndIgnoreFiles?: boolean
+	}
+}
 
 // https://github.com/microsoft/vscode/blob/master/src/vs/workbench/contrib/searchEditor/browser/searchEditorInput.ts
 interface SearchConfiguration {
@@ -44,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let filesToExclude = null
 		let useExcludeSettingsAndIgnoreFiles = true
 		let searchText = input
-		let matched = false;
+		let matched = false
 		for (const it in config) {
 			const data = config[it]
 			let stop = data.stopMatching ?? false

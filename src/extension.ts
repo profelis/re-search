@@ -4,7 +4,7 @@ interface ExtensionConfig {
 	[index: string]:
 	{
 		isRegex?: boolean,
-		replacement: string,
+		replacement?: string,
 		stopMatching?: boolean,
 		isCaseSensitive?: boolean,
 		matchWholeWord?: boolean,
@@ -59,21 +59,23 @@ export function activate(context: vscode.ExtensionContext) {
 		let matched = false
 		for (const it in config) {
 			const data = config[it]
-			let stop = data.stopMatching ?? false
 
 			let key = it.trim()
+			let reg
 			if (key.startsWith("/")) {
 				key = key.substr(1, key.endsWith("/") ? key.length - 2 : key.length - 1)
-				const reg = new RegExp(key, "g")
+				reg = new RegExp(key, "g")
 				matched = searchText.match(reg) != null
-				stop = stop && matched
-				searchText = searchText.replace(reg, data.replacement)
 			}
 			else {
 				matched = searchText.indexOf(key) >= 0
-				stop = stop && matched
-				searchText = searchText.replace(key, data.replacement)
 			}
+
+			const stop = data.stopMatching && matched
+
+			// allow for matching config to just set flags
+			if (data.replacement)
+				searchText = searchText.replace(reg || key, data.replacement)
 
 			if (matched) {
 

@@ -4,13 +4,15 @@ interface ExtensionConfig {
 	[index: string]:
 	{
 		isRegex?: boolean,
-		replacement: string,
+		replacement?: string,
 		stopMatching?: boolean,
 		isCaseSensitive?: boolean,
+		detectCaseSensitive?: boolean,
 		matchWholeWord?: boolean,
 		filesToInclude?: string,
 		filesToExclude?: string,
-		useExcludeSettingsAndIgnoreFiles?: boolean
+		useExcludeSettingsAndIgnoreFiles?: boolean,
+		focusOnResults?: boolean,
 	}
 }
 
@@ -57,23 +59,26 @@ export function activate(context: vscode.ExtensionContext) {
 		let useExcludeSettingsAndIgnoreFiles = true
 		let searchText = input
 		let matched = false
+		let focusOnResults = false
 		for (const it in config) {
 			const data = config[it]
-			let stop = data.stopMatching ?? false
 
 			let key = it.trim()
+			let reg
 			if (key.startsWith("/")) {
 				key = key.substr(1, key.endsWith("/") ? key.length - 2 : key.length - 1)
-				const reg = new RegExp(key, "g")
+				reg = new RegExp(key, "g")
 				matched = searchText.match(reg) != null
-				stop = stop && matched
-				searchText = searchText.replace(reg, data.replacement)
 			}
 			else {
 				matched = searchText.indexOf(key) >= 0
-				stop = stop && matched
-				searchText = searchText.replace(key, data.replacement)
 			}
+
+			const stop = data.stopMatching && matched
+
+			// allow for matching config to just set flags
+			if (data.replacement)
+				searchText = searchText.replace(reg || key, data.replacement)
 
 			if (matched) {
 
@@ -83,6 +88,11 @@ export function activate(context: vscode.ExtensionContext) {
 				// for all other properties, let the matching entry decide these values
 				if (Object.prototype.hasOwnProperty.call(data, 'isCaseSensitive'))
 					isCaseSensitive = data.isCaseSensitive === true
+
+				// allow case sensitive query to be determined by presence of capital letters in query
+				if (data.detectCaseSensitive && data.isCaseSensitive !== false)
+					isCaseSensitive = !!searchText.match(/[A-Z]/)
+
 				if (Object.prototype.hasOwnProperty.call(data, 'matchWholeWord'))
 					matchWholeWord = data.matchWholeWord === true
 				if (Object.prototype.hasOwnProperty.call(data, 'useExcludeSettingsAndIgnoreFiles'))
@@ -92,6 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
 					filesToInclude = filesToInclude == null ? data.filesToInclude : filesToInclude + "," + data.filesToInclude
 				if (Object.prototype.hasOwnProperty.call(data, 'filesToExclude'))
 					filesToExclude = filesToExclude == null ? data.filesToExclude : filesToExclude + ',' + data.filesToExclude
+
+				if (Object.prototype.hasOwnProperty.call(data, 'focusOnResults'))
+					focusOnResults = data.focusOnResults === true
 			}
 
 			if (stop)
@@ -107,6 +120,10 @@ export function activate(context: vscode.ExtensionContext) {
 			filesToExclude: filesToExclude,
 			useExcludeSettingsAndIgnoreFiles: useExcludeSettingsAndIgnoreFiles,
 		})
+
+		// set keyboard focus to the search results for quick arrow navigation / preview
+		if (focusOnResults)
+			setTimeout(() => vscode.commands.executeCommand('search.action.focusSearchList'), 1)
 	}
 
 	const searchDisposable = vscode.commands.registerCommand('re-search.search', async () => {

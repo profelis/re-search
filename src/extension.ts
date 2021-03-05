@@ -11,7 +11,8 @@ interface ExtensionConfig {
 		matchWholeWord?: boolean,
 		filesToInclude?: string,
 		filesToExclude?: string,
-		useExcludeSettingsAndIgnoreFiles?: boolean
+		useExcludeSettingsAndIgnoreFiles?: boolean,
+		focusOnResults?: boolean,
 	}
 }
 
@@ -58,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let useExcludeSettingsAndIgnoreFiles = true
 		let searchText = input
 		let matched = false
+		let focusOnResults = false
 		for (const it in config) {
 			const data = config[it]
 
@@ -100,6 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
 					filesToInclude = filesToInclude == null ? data.filesToInclude : filesToInclude + "," + data.filesToInclude
 				if (Object.prototype.hasOwnProperty.call(data, 'filesToExclude'))
 					filesToExclude = filesToExclude == null ? data.filesToExclude : filesToExclude + ',' + data.filesToExclude
+
+				if (Object.prototype.hasOwnProperty.call(data, 'focusOnResults'))
+					focusOnResults = data.focusOnResults === true
 			}
 
 			if (stop)
@@ -115,6 +120,10 @@ export function activate(context: vscode.ExtensionContext) {
 			filesToExclude: filesToExclude,
 			useExcludeSettingsAndIgnoreFiles: useExcludeSettingsAndIgnoreFiles,
 		})
+
+		// set keyboard focus to the search results for quick arrow navigation / preview
+		if (focusOnResults)
+			setTimeout(() => vscode.commands.executeCommand('search.action.focusSearchList'), 1)
 	}
 
 	const searchDisposable = vscode.commands.registerCommand('re-search.search', async () => {

@@ -7,6 +7,7 @@ interface ExtensionConfig {
 		replacement?: string,
 		stopMatching?: boolean,
 		isCaseSensitive?: boolean,
+		detectCaseSensitive?: boolean,
 		matchWholeWord?: boolean,
 		filesToInclude?: string,
 		filesToExclude?: string,
@@ -85,6 +86,11 @@ export function activate(context: vscode.ExtensionContext) {
 				// for all other properties, let the matching entry decide these values
 				if (Object.prototype.hasOwnProperty.call(data, 'isCaseSensitive'))
 					isCaseSensitive = data.isCaseSensitive === true
+
+				// allow case sensitive query to be determined by presence of capital letters in query
+				if (data.detectCaseSensitive && data.isCaseSensitive !== false)
+					isCaseSensitive = !!searchText.match(/[A-Z]/)
+
 				if (Object.prototype.hasOwnProperty.call(data, 'matchWholeWord'))
 					matchWholeWord = data.matchWholeWord === true
 				if (Object.prototype.hasOwnProperty.call(data, 'useExcludeSettingsAndIgnoreFiles'))
